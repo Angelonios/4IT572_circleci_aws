@@ -36,7 +36,7 @@ jobs:
         - add_ssh_keys:
             fingerprints:
               - "c1:64:9e:bd:8c:93:1e:80:56:6c:c9:bd:1a:11:17:98:23:66:f4:ad"
-        - run: echo $ANSIBLE_VAULT_PW >>> pwd_file.txt
+        - run: echo $ANSIBLE_VAULT_PW > pwd_file.txt
         - ansible-playbook/playbook:
             playbook: ./ansible/ec2_deploy_script.yml
             playbook-options: --vault-password-file pwd_file.txt --user ubuntu
