@@ -1,8 +1,18 @@
 vse: &vse
   docker:
     - image: circleci/node:8.11.3
+ansible:
+  docker: &ansible
+    - image: 'circleci/python:latest'
+      environment:
+          ANSIBLE_HOST_KEY_CHECKING: no
+          AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+          AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+          AWS_SESSION_TOKEN: $AWS_SESSION_TOKEN
 
 version: 2.1
+orbs:
+  ansible-playbook: orbss/ansible-playbook@0.0.5
 jobs:
   build:
     <<: *vse
@@ -16,12 +26,23 @@ jobs:
           paths:
             - .
   deploy:
-    <<: *vse
+    docker: *ansible
     steps:
-      - attach_workspace:
-          at: .
-      - run:
-          command: ./node_modules/.bin/firebase deploy --token=$FIREBASE_TOKEN
+        - attach_workspace:
+           at: .
+        - ansible-playbook/install
+        - run:
+            command: sudo pip install ansible boto boto3
+        - add_ssh_keys:
+            fingerprints:
+              - "c1:64:9e:bd:8c:93:1e:80:56:6c:c9:bd:1a:11:17:98:23:66:f4:ad"
+        - run: echo $ANSIBLE_VAULT_PW >>> pwd_file.txt
+        - ansible-playbook/playbook:
+            playbook: ./ansible/ec2_deploy_script.yml
+            playbook-options: --vault-password-file pwd_file.txt --user ubuntu
+        - run: rm -f pwd_file.txt
+                
+#command: ansible-playbook -vvv ansible/ec2_deploy.yml --vault-password-file ansible_vault_pw.sh --user ubuntu
 workflows:
   version: 2.1
   build:
