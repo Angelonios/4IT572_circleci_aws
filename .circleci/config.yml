@@ -42,7 +42,7 @@ jobs:
         - run: chmod 400 pwd_file.txt  
         - ansible-playbook/playbook:
             playbook: ./ansible/ec2_deploy_script.yml
-            playbook-options: --vvv --vault-password-file pwd_file.txt --user ubuntu
+            playbook-options: -v --vault-password-file pwd_file.txt --user ubuntu
         - run: rm -f pwd_file.txt
                 
 workflows:
